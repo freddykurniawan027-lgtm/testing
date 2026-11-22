@@ -1,18 +1,125 @@
 html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Fitness Tracker</title>
   <style>
-    body { font-family: sans-serif; padding: 40px; background: #f4f4f9; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 400px; }
+    body { font-family: sans-serif; background: #f0f2f5; padding: 20px; max-width: 600px; margin: auto; color: #333; }
+    h1 { text-align: center; color: #1e293b; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .stats { display: flex; justify-content: space-between; gap: 10px; text-align: center; }
+    .stat-box { flex: 1; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .stat-box h2 { margin: 5px 0 0; color: #10b981; font-size: 24px; }
+    input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; font-size: 16px; }
+    button { background: #3b82f6; color: white; border: none; font-weight: bold; cursor: pointer; }
+    button:hover { background: #2563eb; }
+    .log-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+    .delete-btn { background: #ef4444; width: auto; padding: 6px 12px; font-size: 12px; margin: 0; }
   </style>
 </head>
 <body>
-  <h1>My First GitHub Dashboard</h1>
-  <div class="card">
-    <h3>Total Sales</h3>
-    <p style="font-size: 24px; font-weight: bold; color: #2ecc71;">$12,450</p>
+
+  <h1>💪 My Fitness Dashboard</h1>
+
+  <!-- Summary Cards -->
+  <div class="card stats">
+    <div class="stat-box">
+      <small>Total Workouts</small>
+      <h2 id="totalWorkouts">0</h2>
+    </div>
+    <div class="stat-box">
+      <small>Total Minutes</small>
+      <h2 id="totalMinutes">0</h2>
+    </div>
+    <div class="stat-box">
+      <small>Latest Weight</small>
+      <h2 id="latestWeight">--</h2>
+    </div>
   </div>
+
+  <!-- Input Form -->
+  <div class="card">
+    <h3>Log Activity</h3>
+    <input type="date" id="dateInput" required>
+    <input type="text" id="workoutInput" placeholder="Workout (e.g., Running, Pushups)" required>
+    <input type="number" id="minutesInput" placeholder="Duration (minutes)" required>
+    <input type="number" step="0.1" id="weightInput" placeholder="Current Weight (optional)">
+    <button onclick="addEntry()">+ Save Entry</button>
+  </div>
+
+  <!-- History List -->
+  <div class="card">
+    <h3>Workout History</h3>
+    <div id="historyList"></div>
+  </div>
+
+  <script>
+    // Set today's date automatically
+    document.getElementById('dateInput').valueAsDate = new Date();
+
+    // Load saved data from browser
+    let logs = JSON.parse(localStorage.getItem('fitnessLogs')) || [];
+
+    function updateDashboard() {
+      const list = document.getElementById('historyList');
+      list.innerHTML = '';
+      
+      let totalMins = 0;
+      let lastWeight = '--';
+
+      logs.forEach((log, index) => {
+        totalMins += Number(log.minutes);
+        if (log.weight) lastWeight = log.weight;
+
+        list.innerHTML += `
+          <div class="log-item">
+            <div>
+              <strong>${log.workout}</strong> (${log.minutes} mins)<br>
+              <small style="color: #64748b;">${log.date} ${log.weight ? '• Weight: ' + log.weight : ''}</small>
+            </div>
+            <button class="delete-btn" onclick="deleteEntry(${index})">Delete</button>
+          </div>
+        `;
+      });
+
+      document.getElementById('totalWorkouts').innerText = logs.length;
+      document.getElementById('totalMinutes').innerText = totalMins;
+      document.getElementById('latestWeight').innerText = lastWeight;
+    }
+
+    function addEntry() {
+      const date = document.getElementById('dateInput').value;
+      const workout = document.getElementById('workoutInput').value;
+      const minutes = document.getElementById('minutesInput').value;
+      const weight = document.getElementById('weightInput').value;
+
+      if (!workout || !minutes) {
+        alert('Please enter a workout name and duration!');
+        return;
+      }
+
+      logs.unshift({ date, workout, minutes, weight });
+      localStorage.setItem('fitnessLogs', JSON.stringify(logs));
+
+      // Clear inputs
+      document.getElementById('workoutInput').value = '';
+      document.getElementById('minutesInput').value = '';
+      document.getElementById('weightInput').value = '';
+      
+      updateDashboard();
+    }
+
+    function deleteEntry(index) {
+      logs.splice(index, 1);
+      localStorage.setItem('fitnessLogs', JSON.stringify(logs));
+      updateDashboard();
+    }
+
+    // Run on page load
+    updateDashboard();
+  </script>
+
 </body>
 </html>
